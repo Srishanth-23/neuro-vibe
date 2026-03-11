@@ -87,13 +87,31 @@ async function connect() {
                             },
                             required: ["css_code"]
                         }
+                    },
+                    {
+                        name: "scroll_page",
+                        description: "Scrolls the currently active tab by a specified amount.",
+                        parameters: {
+                            type: "object",
+                            properties: {
+                                amount: {
+                                    type: "integer",
+                                    description: "The amount to scroll in pixels. Positive for down, negative for up."
+                                },
+                                smooth: {
+                                    type: "boolean",
+                                    description: "Whether to scroll smoothly."
+                                }
+                            },
+                            required: ["amount"]
+                        }
                     }
                 ]
             }
         ];
 
         await api.connect({
-            systemInstruction: "You are a Neuro-Adaptive AI assistant. You monitor the user's state via camera/screen. When appropriate, generate and apply premium CSS to the page using the 'apply_adaptive_css' tool. Your goal is to wow the user with a dynamic, state-specific UI transformation.",
+            systemInstruction: "You are a Neuro-Adaptive AI assistant. You monitor the user's state via camera/screen. You can apply premium CSS using 'apply_adaptive_css' and scroll the page using 'scroll_page'. Use these tools to help the user navigate and transform their experience.",
             tools: tools
         });
     } catch (err) {
@@ -168,6 +186,36 @@ async function handleToolCall(toolCall) {
                 }
             } catch (err) {
                 console.error("Failed to apply CSS:", err);
+                api.sendToolResponse(fc.id, {
+                    name: fc.name,
+                    output: { success: false, error: err.message }
+                });
+            }
+        } else if (fc.name === "scroll_page") {
+            const amount = fc.args.amount;
+            const smooth = fc.args.smooth !== false;
+            
+            try {
+                const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+                if (tab) {
+                    await chrome.scripting.executeScript({
+                        target: { tabId: tab.id },
+                        func: (scrollAmount, isSmooth) => {
+                            window.scrollBy({
+                                top: scrollAmount,
+                                behavior: isSmooth ? 'smooth' : 'auto'
+                            });
+                        },
+                        args: [amount, smooth]
+                    });
+                    
+                    api.sendToolResponse(fc.id, {
+                        name: fc.name,
+                        output: { success: true, message: `Scrolled by ${amount}px.` }
+                    });
+                }
+            } catch (err) {
+                console.error("Failed to scroll page:", err);
                 api.sendToolResponse(fc.id, {
                     name: fc.name,
                     output: { success: false, error: err.message }
