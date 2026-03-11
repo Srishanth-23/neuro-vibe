@@ -7,7 +7,9 @@
     "sidePanel",
     "activeTab",
     "storage",
-    "microphone"
+    "microphone",
+    "scripting",
+    "tabs"
   ],
   "host_permissions": [
     "https://generativelanguage.googleapis.com/*"

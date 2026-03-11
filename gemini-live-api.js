@@ -61,10 +61,25 @@ class GeminiLiveAPI {
                 },
                 systemInstruction: {
                     parts: [{ text: config.systemInstruction || "You are a helpful assistant." }]
-                }
+                },
+                tools: config.tools || []
             }
         };
         this.send(setupMessage);
+    }
+
+    sendToolResponse(toolCallId, response) {
+        this.send({
+            toolResponse: {
+                functionResponses: [
+                    {
+                        name: response.name,
+                        id: toolCallId,
+                        response: response.output
+                    }
+                ]
+            }
+        });
     }
 
     send(message) {

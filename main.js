@@ -71,8 +71,30 @@ async function connect() {
     };
 
     try {
+        const tools = [
+            {
+                functionDeclarations: [
+                    {
+                        name: "apply_adaptive_css",
+                        description: "Applies a CSS snippet to the current webpage to adapt the UI for the user's state. Use this to transform the page appearance.",
+                        parameters: {
+                            type: "object",
+                            properties: {
+                                css_code: {
+                                    type: "string",
+                                    description: "The CSS code to inject into the page. Be specific and premium."
+                                }
+                            },
+                            required: ["css_code"]
+                        }
+                    }
+                ]
+            }
+        ];
+
         await api.connect({
-            systemInstruction: "You are a helpful AI assistant in a browser extension side panel. You can see what the user shares via camera or screen."
+            systemInstruction: "You are a Neuro-Adaptive AI assistant. You monitor the user's state via camera/screen. When appropriate, generate and apply premium CSS to the page using the 'apply_adaptive_css' tool. Your goal is to wow the user with a dynamic, state-specific UI transformation.",
+            tools: tools
         });
     } catch (err) {
         addMessage(`Connection error: ${err.message}`, 'system-msg');
@@ -108,6 +130,49 @@ function handleMessage(response) {
 
         if (content.interrupted) {
             audioPlayer.interrupt();
+        }
+    }
+
+    if (response.toolCall) {
+        handleToolCall(response.toolCall);
+    }
+}
+
+async function handleToolCall(toolCall) {
+    for (const fc of toolCall.functionCalls) {
+        if (fc.name === "apply_adaptive_css") {
+            const css = fc.args.css_code;
+            addMessage('✨ Applying Neuro-UI transformation...', 'system-msg');
+            
+            try {
+                const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+                if (tab) {
+                    await chrome.scripting.executeScript({
+                        target: { tabId: tab.id },
+                        func: (cssCode) => {
+                            let style = document.getElementById('gemini-neuro-ui');
+                            if (!style) {
+                                style = document.createElement('style');
+                                style.id = 'gemini-neuro-ui';
+                                document.head.appendChild(style);
+                            }
+                            style.textContent = cssCode;
+                        },
+                        args: [css]
+                    });
+                    
+                    api.sendToolResponse(fc.id, {
+                        name: fc.name,
+                        output: { success: true, message: "CSS applied successfully to the active tab." }
+                    });
+                }
+            } catch (err) {
+                console.error("Failed to apply CSS:", err);
+                api.sendToolResponse(fc.id, {
+                    name: fc.name,
+                    output: { success: false, error: err.message }
+                });
+            }
         }
     }
 }
