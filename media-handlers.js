@@ -60,15 +60,47 @@ class AudioHandler {
 }
 
 class VideoHandler {
-    constructor(onFrame) {
+    constructor(onFrame, onBiomarkerDetected) {
         this.onFrame = onFrame;
+        this.onBiomarkerDetected = onBiomarkerDetected;
         this.stream = null;
         this.videoElement = document.getElementById('video-preview');
         this.canvas = document.getElementById('video-canvas');
+        this.container = document.getElementById('camera-section');
         this.timer = null;
+        this.faceLandmarker = null;
+        this.lastVideoTime = -1;
+        this.isDetecting = false;
+        this.lastSquintTime = 0;
+        this.lastFrownTime = 0;
+        this.lastEyeClosedTime = 0;
+    }
+
+    async initMediaPipe() {
+        try {
+            const vision = await FilesetResolver.forVisionTasks(
+                "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
+            );
+            this.faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
+                baseOptions: {
+                    modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task`,
+                    delegate: "GPU"
+                },
+                outputFaceBlendshapes: true,
+                runningMode: "VIDEO",
+                numFaces: 1
+            });
+            console.log("MediaPipe Face Landmarker loaded!");
+        } catch (e) {
+            console.error("Failed to load Face Landmarker", e);
+        }
     }
 
     async start(type = 'camera') {
+        if (!this.faceLandmarker && type === 'camera') {
+            await this.initMediaPipe();
+        }
+
         if (type === 'camera') {
             this.stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
         } else {
@@ -76,11 +108,83 @@ class VideoHandler {
         }
 
         this.videoElement.srcObject = this.stream;
-        this.videoElement.hidden = false;
+        if (this.container) this.container.style.display = 'block';
 
-        this.timer = setInterval(() => {
-            this.captureFrame();
-        }, 1000); // 1 FPS for efficiency
+        // Wait for video to be ready before starting loops
+        this.videoElement.onloadedmetadata = () => {
+             // Gemini Loop (1 FPS)
+            this.timer = setInterval(() => {
+                this.captureFrame();
+            }, 1000); 
+
+            // MediaPipe Loop (Continuous)
+            if (type === 'camera' && this.faceLandmarker) {
+                this.isDetecting = true;
+                this.predictWebcam();
+            }
+        }
+    }
+
+    async predictWebcam() {
+        if (!this.isDetecting || !this.videoElement) return;
+
+        let startTimeMs = performance.now();
+        if (this.lastVideoTime !== this.videoElement.currentTime) {
+            this.lastVideoTime = this.videoElement.currentTime;
+            
+            try {
+                const results = this.faceLandmarker.detectForVideo(this.videoElement, startTimeMs);
+                this.analyzeBiomarkers(results);
+            } catch(e) {
+                // Ignore silent mediapipe errors during rapid frames
+            }
+        }
+
+        // Keep looping
+        window.requestAnimationFrame(() => this.predictWebcam());
+    }
+
+    analyzeBiomarkers(results) {
+        if (!results.faceBlendshapes || results.faceBlendshapes.length === 0) return;
+        if (!this.onBiomarkerDetected) return;
+
+        const shapes = results.faceBlendshapes[0].categories;
+        const now = Date.now();
+
+        // Find relevant blendshape scores
+        let squintLeft = 0, squintRight = 0, frownLeft = 0, frownRight = 0, eyeClosedLeft = 0, eyeClosedRight = 0;
+        
+        shapes.forEach(shape => {
+            if (shape.categoryName === 'eyeSquintLeft') squintLeft = shape.score;
+            if (shape.categoryName === 'eyeSquintRight') squintRight = shape.score;
+            if (shape.categoryName === 'mouthFrownLeft') frownLeft = shape.score;
+            if (shape.categoryName === 'mouthFrownRight') frownRight = shape.score;
+            if (shape.categoryName === 'eyeBlinkLeft') eyeClosedLeft = shape.score;
+            if (shape.categoryName === 'eyeBlinkRight') eyeClosedRight = shape.score;
+        });
+
+        const frownThreshold = 0.5;
+        const squintThreshold = 0.45;
+        const closedThreshold = 0.6;
+        const cooldownMs = 15000; // Only trigger a specific state once every 15s
+
+        // 1. Sensory Distress / Pain (Severe Frowning / Eyes shut tight)
+        if ((frownLeft > frownThreshold && frownRight > frownThreshold) || 
+            (eyeClosedLeft > closedThreshold && eyeClosedRight > closedThreshold)) {
+            if (now - this.lastFrownTime > cooldownMs) {
+                this.lastFrownTime = now;
+                console.log("Biomarker Trigger: Sensory Distress");
+                this.onBiomarkerDetected("[SYSTEM BIOMARKER DETECTED: User is showing severe facial distress/frowning. They may be experiencing sensory overload. Intervene immediately.]");
+            }
+        }
+        // 2. Dyslexia / Focus Strain (Squinting)
+        else if (squintLeft > squintThreshold && squintRight > squintThreshold) {
+            if (now - this.lastSquintTime > cooldownMs) {
+                this.lastSquintTime = now;
+                console.log("Biomarker Trigger: Squinting");
+                this.onBiomarkerDetected("[SYSTEM BIOMARKER DETECTED: User is squinting intensely at the screen. They may be straining to read (Dyslexia flag). Provide reading assistance or modify fonts.]");
+            }
+        }
     }
 
     captureFrame() {
@@ -94,11 +198,13 @@ class VideoHandler {
     }
 
     stop() {
+        this.isDetecting = false;
         if (this.stream) {
             this.stream.getTracks().forEach(t => t.stop());
         }
         clearInterval(this.timer);
         this.videoElement.hidden = true;
+        if (this.container) this.container.style.display = 'none';
     }
 }
 

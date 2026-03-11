@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini Live Assistant</title>
+    <title>Neuro-Vibe Assistant</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,58 +11,61 @@
 </head>
 <body>
     <div class="app-container">
+
+        <!-- ── Header ── -->
         <header>
-            <h1>Gemini Live</h1>
+            <div class="brand">
+                <span class="brand-icon">🧠</span>
+                <h1>Neuro-Vibe</h1>
+            </div>
             <div id="connection-status" class="status-badge disconnected">Disconnected</div>
         </header>
 
-        <main>
-            <div id="chat-container" class="chat-area">
-                <!-- Messages will appear here -->
-                <div class="system-msg">Press Connect to start</div>
-            </div>
-
-            <div class="controls-panel">
-                <div class="setting-group">
-                    <label for="api-key">Gemini API Key</label>
-                    <input type="password" id="api-key" placeholder="Enter API Key...">
-                </div>
-
-                <div class="action-buttons">
-                    <button id="connect-btn" class="primary-btn">Connect</button>
-                    <button id="disconnect-btn" class="secondary-btn" disabled>Disconnect</button>
-                </div>
-
-                <div class="media-controls">
-                    <button id="mic-btn" class="icon-btn" title="Toggle Microphone" disabled>
-                        <span class="icon">🎤</span>
-                    </button>
-                    <button id="camera-btn" class="icon-btn" title="Toggle Camera" disabled>
-                        <span class="icon">📷</span>
-                    </button>
-                    <button id="screen-btn" class="icon-btn" title="Share Screen" disabled>
-                        <span class="icon">🖥️</span>
-                    </button>
-                </div>
-
-                <div class="input-area">
-                    <input type="text" id="chat-input" placeholder="Type a message..." disabled>
-                    <button id="send-btn" disabled>Send</button>
-                </div>
-            </div>
-            
-            <div class="video-preview-container">
-                <video id="video-preview" autoplay playsinline muted hidden></video>
+        <!-- ── Camera Preview Block ── -->
+        <div class="camera-section" id="camera-section" style="display:none;">
+            <div class="camera-wrapper">
+                <video id="video-preview" autoplay playsinline muted></video>
                 <canvas id="video-canvas" hidden></canvas>
+                <div class="camera-badge">📷 Live Tracking</div>
             </div>
-        </main>
+        </div>
 
+        <!-- ── API Key + Connect ── -->
+        <div class="setup-card">
+            <input type="password" id="api-key" placeholder="🔑  Enter Gemini API Key…">
+            <div class="action-buttons">
+                <button id="connect-btn" class="primary-btn">Connect</button>
+                <button id="disconnect-btn" class="secondary-btn" disabled>Disconnect</button>
+            </div>
+        </div>
+
+        <!-- ── Chat Area ── -->
+        <div id="chat-container" class="chat-area">
+            <div class="system-msg">Press Connect to start</div>
+        </div>
+
+        <!-- ── Bottom Controls ── -->
+        <div class="bottom-bar">
+            <div class="media-controls">
+                <button id="mic-btn"    class="icon-btn" title="Toggle Microphone" disabled><span>🎤</span></button>
+                <button id="camera-btn" class="icon-btn" title="Toggle Camera"     disabled><span>📷</span></button>
+                <button id="screen-btn" class="icon-btn" title="Share Screen"      disabled><span>🖥️</span></button>
+            </div>
+            <div class="input-area">
+                <input type="text" id="chat-input" placeholder="Type a message…">
+                <button id="send-btn" disabled>Send</button>
+            </div>
+        </div>
+
+        <!-- ── Footer ── -->
         <footer>
-            <div class="model-info">Model: <span id="model-name">gemini-2.0-flash-exp</span></div>
+            <span>Model: <strong id="model-name">gemini-2.5-flash</strong></span>
         </footer>
+
     </div>
 
     <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.js" crossorigin="anonymous"></script>
     <script src="gemini-live-api.js"></script>
     <script src="media-handlers.js"></script>
     <script src="main.js"></script>

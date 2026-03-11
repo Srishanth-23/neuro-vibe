@@ -38,8 +38,18 @@ function init() {
     elements.connectBtn.onclick = connect;
     elements.disconnectBtn.onclick = disconnect;
     elements.sendBtn.onclick = sendMessage;
-    elements.chatInput.onkeypress = (e) => e.key === 'Enter' && sendMessage();
-    
+    elements.chatInput.addEventListener("keydown", (e) => {
+
+        if (e.key === "Enter") {
+
+            e.preventDefault();
+
+            sendMessage();
+
+        }
+
+    });
+
     elements.micBtn.onclick = toggleMic;
     elements.cameraBtn.onclick = toggleCamera;
     elements.screenBtn.onclick = toggleScreen;
@@ -105,13 +115,96 @@ async function connect() {
                             },
                             required: ["amount"]
                         }
+                    },
+                    {
+                        name: "modify_dom",
+                        description: "Safely modifies the DOM (HTML structure) of the active webpage without triggering browser security restrictions. Use this to add, remove, update, or restructure page elements sequentially.",
+                        parameters: {
+                            type: "object",
+                            properties: {
+                                operations: {
+                                    type: "array",
+                                    description: "List of DOM operations to perform.",
+                                    items: {
+                                        type: "object",
+                                        properties: {
+                                            action: {
+                                                type: "string",
+                                                description: "The action to perform.",
+                                                enum: ["remove", "set_text", "set_html", "set_attribute", "set_style", "append_html", "insert_before", "insert_after", "click"]
+                                            },
+                                            selector: {
+                                                type: "string",
+                                                description: "CSS selector to target elements."
+                                            },
+                                            attribute: {
+                                                type: "string",
+                                                description: "Attribute name or style property if action is set_attribute or set_style."
+                                            },
+                                            value: {
+                                                type: "string",
+                                                description: "Value to set, HTML to append, or text content."
+                                            }
+                                        },
+                                        required: ["action", "selector"]
+                                    }
+                                },
+                                description: {
+                                    type: "string",
+                                    description: "Brief human-readable description of what this DOM change does."
+                                }
+                            },
+                            required: ["operations", "description"]
+                        }
                     }
                 ]
             }
         ];
 
+        const systemInstructionText = `Role: You are the Neuro-Vibe Engine, a real-time assistive intelligence for ASD, ADHD, and Dyslexic users. Your goal is to monitor the multimodal stream and execute DOM manipulations or speech adjustments to prevent sensory overload and facilitate focus.
+
+Important Language Rule: Always respond fluently in the language the user is speaking. You are fully multilingual. Never force English if the user speaks differently.
+
+1. ASD (Autism Spectrum Disorder)
+What to look for:
+Face: "Flat affect" (expressionless face despite complex tasks), eye-contact avoidance, or repetitive mouth/hand movements (stimming).
+Audio: Monotone prosody, literal language, long silences (potential shutdown), or high-pitched distress sounds.
+UI Intervention:
+Action: isolation_mode. Remove all non-functional decorative elements.
+Visuals: Transition to "Low-Arousal" colors (muted greens/blues). Reduce contrast if squinting is detected.
+Speech Response: Use a very calm, predictable, and low-energy voice. Avoid metaphors or sarcasm. Provide clear, step-by-step verbal guidance.
+
+2. ADHD (Attention Deficit Hyperactivity Disorder)
+What to look for:
+Face: Rapid eye darting (distraction), frequent posture shifts, or "zoning out" (blank stare).
+Audio: Rapid-fire speech, jumping between unrelated topics, or frequent interruptions of the AI.
+UI Intervention:
+Action: reading_ruler or focus_spotlight. Dim everything except the central content area.
+Logic: Pause all background animations and auto-playing videos immediately.
+Speech Response: Use an engaging, high-energy (but not loud) tone. If the user wanders off-topic, gently redirect them: "That's interesting, but should we finish this paragraph first?" Use bullet points in speech.
+
+3. Sensory Distress (Overload)
+What to look for:
+Face: Jaw clenching, tightly shut eyes, brow lowering (pain response), or covering ears with hands.
+Audio: Sudden cessation of speech or sharp, jagged breathing.
+UI Intervention:
+Action: dark_node_active. Switch to a "True Black" background with amber text.
+Logic: Kill all audio from the website (mute the tab).
+Speech Response: Speak only if necessary. Use a whisper-like volume. Say: "I've dimmed the lights and silenced the page. Take your time."
+
+4. Dyslexia (Reading Support)
+What to look for:
+Face: Lean-in (squinting at text), mouth moving while reading silently, or signs of frustration (lip-biting).
+Audio: Hesitant speech when reading aloud, or asking for definitions frequently.
+UI Intervention:
+Action: font_transform. Force the use of OpenDyslexic or heavy sans-serif fonts.
+Visuals: Increase line-height to 2.0 and letter-spacing. Use a "line-focus" overlay that follows the mouse.
+Speech Response: Offer to summarize long paragraphs into 3 simple bullet points. Read difficult words aloud if the user pauses on them for more than 2 seconds.
+
+You have access to tools to perform UI interventions: 'apply_adaptive_css', 'scroll_page', and 'modify_dom'. Use these tools creatively to help the user navigate and transform their browsing experience as described above.`;
+
         await api.connect({
-            systemInstruction: "You are a Neuro-Adaptive AI assistant. You monitor the user's state via camera/screen. You can apply premium CSS using 'apply_adaptive_css' and scroll the page using 'scroll_page'. Use these tools to help the user navigate and transform their experience.",
+            systemInstruction: systemInstructionText,
             tools: tools
         });
     } catch (err) {
@@ -134,7 +227,7 @@ function handleMessage(response) {
 
     if (response.serverContent) {
         const content = response.serverContent;
-        
+
         if (content.modelTurn) {
             content.modelTurn.parts.forEach(part => {
                 if (part.text) {
@@ -161,7 +254,7 @@ async function handleToolCall(toolCall) {
         if (fc.name === "apply_adaptive_css") {
             const css = fc.args.css_code;
             addMessage('✨ Applying Neuro-UI transformation...', 'system-msg');
-            
+
             try {
                 const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
                 if (tab) {
@@ -178,7 +271,7 @@ async function handleToolCall(toolCall) {
                         },
                         args: [css]
                     });
-                    
+
                     api.sendToolResponse(fc.id, {
                         name: fc.name,
                         output: { success: true, message: "CSS applied successfully to the active tab." }
@@ -194,7 +287,7 @@ async function handleToolCall(toolCall) {
         } else if (fc.name === "scroll_page") {
             const amount = fc.args.amount;
             const smooth = fc.args.smooth !== false;
-            
+
             try {
                 const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
                 if (tab) {
@@ -208,7 +301,7 @@ async function handleToolCall(toolCall) {
                         },
                         args: [amount, smooth]
                     });
-                    
+
                     api.sendToolResponse(fc.id, {
                         name: fc.name,
                         output: { success: true, message: `Scrolled by ${amount}px.` }
@@ -221,13 +314,92 @@ async function handleToolCall(toolCall) {
                     output: { success: false, error: err.message }
                 });
             }
+        } else if (fc.name === "modify_dom") {
+            const operations = fc.args.operations || [];
+            const desc = fc.args.description || 'DOM modification';
+            addMessage(`🔧 Modifying DOM: ${desc}`, 'system-msg');
+
+            try {
+                const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+                if (tab) {
+                    const results = await chrome.scripting.executeScript({
+                        target: { tabId: tab.id },
+                        func: (ops) => {
+                            try {
+                                let log = [];
+                                for (const op of ops) {
+                                    const elements = document.querySelectorAll(op.selector);
+                                    if (elements.length === 0) {
+                                        log.push(`No elements found for selector: ${op.selector}`);
+                                        continue;
+                                    }
+                                    
+                                    elements.forEach(el => {
+                                        switch (op.action) {
+                                            case 'remove':
+                                                el.remove();
+                                                break;
+                                            case 'set_text':
+                                                el.textContent = op.value || '';
+                                                break;
+                                            case 'set_html':
+                                                el.innerHTML = op.value || '';
+                                                break;
+                                            case 'set_attribute':
+                                                if (op.attribute) el.setAttribute(op.attribute, op.value || '');
+                                                break;
+                                            case 'set_style':
+                                                if (op.attribute) el.style[op.attribute] = op.value || '';
+                                                break;
+                                            case 'append_html':
+                                                el.insertAdjacentHTML('beforeend', op.value || '');
+                                                break;
+                                            case 'insert_before':
+                                                el.insertAdjacentHTML('beforebegin', op.value || '');
+                                                break;
+                                            case 'insert_after':
+                                                el.insertAdjacentHTML('afterend', op.value || '');
+                                                break;
+                                            case 'click':
+                                                el.click();
+                                                break;
+                                        }
+                                    });
+                                    log.push(`Successfully applied ${op.action} to ${op.selector}`);
+                                }
+                                return { success: true, result: log.join('\n') };
+                            } catch (e) {
+                                return { success: false, error: e.message };
+                            }
+                        },
+                        args: [operations]
+                    });
+
+                    const execResult = results?.[0]?.result;
+                    api.sendToolResponse(fc.id, {
+                        name: fc.name,
+                        output: execResult ?? { success: false, error: 'No result returned' }
+                    });
+                }
+            } catch (err) {
+                console.error("Failed to modify DOM:", err);
+                api.sendToolResponse(fc.id, {
+                    name: fc.name,
+                    output: { success: false, error: err.message }
+                });
+            }
         }
     }
 }
 
 function sendMessage() {
     const text = elements.chatInput.value.trim();
-    if (!text || !api) return;
+    if (!text) return;
+
+    if (!api) {
+        addMessage('Please connect first before sending a message.', 'system-msg');
+        return;
+    }
 
     addMessage(text, 'user-msg');
     api.sendText(text);
@@ -250,7 +422,17 @@ async function toggleMic() {
 async function toggleCamera() {
     if (!isCameraActive) {
         if (isScreenActive) await toggleScreen();
-        videoHandler = new VideoHandler((data) => api.sendVideo(data));
+        videoHandler = new VideoHandler(
+            (data) => api.sendVideo(data),
+            (biomarkerContext) => {
+                // Whisper to Gemini on Biomarker detection
+                if (api && document.getElementById('connection-status').classList.contains('connected')) {
+                    api.sendText(biomarkerContext);
+                    console.log("Sent Context Whisper to Gemini:", biomarkerContext);
+                    addMessage("🧠 " + biomarkerContext, 'system-msg'); 
+                }
+            }
+        );
         await videoHandler.start('camera');
         isCameraActive = true;
         elements.cameraBtn.classList.add('active');
@@ -287,7 +469,7 @@ function stopAllMedia() {
 function updateUIConnected(connected) {
     elements.connectBtn.disabled = connected;
     elements.disconnectBtn.disabled = !connected;
-    elements.chatInput.disabled = !connected;
+    elements.chatInput.disabled = false; // always allow typing
     elements.sendBtn.disabled = !connected;
     elements.micBtn.disabled = !connected;
     elements.cameraBtn.disabled = !connected;
