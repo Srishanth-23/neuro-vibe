@@ -1,0 +1,220 @@
+:root {
+    --primary: #4285f4;
+    --primary-glow: rgba(66, 133, 244, 0.3);
+    --bg-dark: #0f172a;
+    --card-bg: rgba(30, 41, 59, 0.7);
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --border: rgba(255, 255, 255, 0.1);
+    --success: #10b981;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 16px;
+    gap: 16px;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+h1 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #60a5fa, #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.status-badge {
+    font-size: 0.75rem;
+    padding: 4px 12px;
+    border-radius: 20px;
+    background: var(--card-bg);
+}
+
+.status-badge.connected {
+    color: var(--success);
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+}
+
+.chat-area {
+    flex: 1;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    backdrop-filter: blur(10px);
+}
+
+.system-msg {
+    text-align: center;
+    color: var(--text-muted);
+    font-style: italic;
+    font-size: 0.875rem;
+}
+
+.user-msg, .assistant-msg {
+    max-width: 85%;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 0.9375rem;
+    line-height: 1.4;
+}
+
+.user-msg {
+    align-self: flex-end;
+    background: var(--primary);
+    color: white;
+}
+
+.assistant-msg {
+    align-self: flex-start;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+}
+
+.controls-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.setting-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+input[type="password"], input[type="text"] {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+    color: white;
+    font-family: inherit;
+}
+
+.action-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+button {
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    font-family: inherit;
+}
+
+.primary-btn {
+    background: var(--primary);
+    color: white;
+}
+
+.primary-btn:hover {
+    box-shadow: 0 0 15px var(--primary-glow);
+}
+
+.secondary-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.media-controls {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.icon-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.icon-btn:not(:disabled):hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.icon-btn.active {
+    background: var(--primary);
+    border-color: var(--primary);
+}
+
+.input-area {
+    display: flex;
+    gap: 8px;
+}
+
+.input-area input {
+    flex: 1;
+}
+
+footer {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-align: center;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+}
+
+.video-preview-container {
+    position: absolute;
+    bottom: 80px;
+    right: 24px;
+    width: 120px;
+    height: 90px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid var(--primary);
+}
+
+#video-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
