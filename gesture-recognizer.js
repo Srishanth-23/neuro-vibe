@@ -22,7 +22,7 @@ export class GestureRecognizer {
         console.log("Initializing Gesture Recognizer...");
         
         this.handsConfig = new window.Hands({locateFile: (file) => {
-            return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+            return chrome.runtime.getURL(`lib/mediapipe/hands/${file}`);
         }});
 
         this.handsConfig.setOptions({
