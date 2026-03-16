@@ -1,7 +1,7 @@
 /**
 * GeminiLiveAPI: Handles direct WebSocket communication with Google Gemini API
 */
-class GeminiLiveAPI {
+export class GeminiLiveAPI {
     constructor(apiKey, model = "gemini-2.5-flash-native-audio-preview-12-2025") {
         this.apiKey = apiKey;
         this.model = model;

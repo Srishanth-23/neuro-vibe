@@ -25,7 +25,7 @@
         <div class="camera-section" id="camera-section" style="display:none;">
             <div class="camera-wrapper">
                 <video id="video-preview" autoplay playsinline muted></video>
-                <canvas id="video-canvas" hidden></canvas>
+                <canvas id="video-canvas"></canvas>
                 <div class="camera-badge">📷 Live Tracking</div>
             </div>
         </div>
@@ -65,9 +65,6 @@
     </div>
 
     <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.js" crossorigin="anonymous"></script>
-    <script src="gemini-live-api.js"></script>
-    <script src="media-handlers.js"></script>
-    <script src="main.js"></script>
+    <script src="main.js" type="module"></script>
 </body>
 </html>

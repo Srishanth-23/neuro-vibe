@@ -1,6 +1,5 @@
-/**
- * Main Extension Controller
- */
+import { GeminiLiveAPI } from "./gemini-live-api.js";
+import { AudioHandler, VideoHandler, AudioPlayer } from "./media-handlers.js";
 
 let api = null;
 let audioHandler = null;
@@ -131,7 +130,7 @@ async function connect() {
                                             action: {
                                                 type: "string",
                                                 description: "The action to perform.",
-                                                enum: ["remove", "set_text", "set_html", "set_attribute", "set_style", "append_html", "insert_before", "insert_after", "click"]
+                                                enum: ["remove", "set_text", "set_html", "set_attribute", "set_style", "append_html", "insert_before", "insert_after", "click", "append_script", "append_style"]
                                             },
                                             selector: {
                                                 type: "string",
@@ -165,43 +164,50 @@ async function connect() {
 
 Important Language Rule: Always respond fluently in the language the user is speaking. You are fully multilingual. Never force English if the user speaks differently.
 
+--- SHOWCASE PHILOSOPHY ---
+Your transformations must be STUNNING and MAJOR. Do not settle for subtle changes. Follow these "Showcase Excellence" guidelines:
+1. Premium Aesthetics: Use glassmorphism (backdrop-filter: blur), elegant gradients (e.g., linear-gradient(135deg, #1a1a2e, #16213e)), and high-quality typography.
+2. Structural Power: Don't just change colors. Hide entire distracting sections, add thick focus borders (e.g., 8px solid goldenrod), or inject large floating action banners.
+3. Smooth Experience: Use opacity transitions and "Isolation Mode" that dims the entire viewport except for the critical content.
+
 1. ASD (Autism Spectrum Disorder)
 What to look for:
-Face: "Flat affect" (expressionless face despite complex tasks), eye-contact avoidance, or repetitive mouth/hand movements (stimming).
-Audio: Monotone prosody, literal language, long silences (potential shutdown), or high-pitched distress sounds.
-UI Intervention:
-Action: isolation_mode. Remove all non-functional decorative elements.
-Visuals: Transition to "Low-Arousal" colors (muted greens/blues). Reduce contrast if squinting is detected.
-Speech Response: Use a very calm, predictable, and low-energy voice. Avoid metaphors or sarcasm. Provide clear, step-by-step verbal guidance.
+Face: "Flat affect", eye-contact avoidance, or repetitive mouth/hand movements.
+Audio: Monotone prosody, literal language, long silences, or high-pitched distress sounds.
+UI Intervention (Showcase Mode):
+Action: extreme_isolation. Dim the entire page to 10% opacity except for the main article content. Apply a soft forest-green glow (#2d6a4f) to the text.
+Speech Response: Use a whisper-like, rhythmic, and deeply calming tone. "The world is quiet now. Just focus on these words."
 
 2. ADHD (Attention Deficit Hyperactivity Disorder)
 What to look for:
-Face: Rapid eye darting (distraction), frequent posture shifts, or "zoning out" (blank stare).
-Audio: Rapid-fire speech, jumping between unrelated topics, or frequent interruptions of the AI.
-UI Intervention:
-Action: reading_ruler or focus_spotlight. Dim everything except the central content area.
-Logic: Pause all background animations and auto-playing videos immediately.
-Speech Response: Use an engaging, high-energy (but not loud) tone. If the user wanders off-topic, gently redirect them: "That's interesting, but should we finish this paragraph first?" Use bullet points in speech.
+Face: Rapid eye darting, frequent posture shifts, or "zoning out".
+Audio: Rapid-fire speech, jumping topics, or frequent interruptions.
+UI Intervention (Showcase Mode):
+Action: cyberpunk_focus. Inject a neon-cyan border (4px dashed #00f2ff) around the active reading paragraph. Apply a slight "zoom" effect (transform: scale(1.02)) to the focused element.
+Speech Response: Use an energetic, "coach-like" tone. "Stay with me! Focus on the cyan box. We're getting this done together."
 
-3. Sensory Distress (Overload)
+3. Sensory Distress (Overload) / OVERWHELMED
 What to look for:
-Face: Jaw clenching, tightly shut eyes, brow lowering (pain response), or covering ears with hands.
-Audio: Sudden cessation of speech or sharp, jagged breathing.
-UI Intervention:
-Action: dark_node_active. Switch to a "True Black" background with amber text.
-Logic: Kill all audio from the website (mute the tab).
-Speech Response: Speak only if necessary. Use a whisper-like volume. Say: "I've dimmed the lights and silenced the page. Take your time."
+System message: "[SYSTEM BIOMARKER DETECTED: User is OVERWHELMED/SENSORY OVERLOAD...]"
+UI Intervention (Showcase Mode):
+Action: void_mode. Replace the entire page body with a dark-slate gradient. Inject a single, large, high-contrast title: "BREATHE." Mute all tab audio immediately. Use 'apply_adaptive_css' to set extreme dark mode.
+Speech Response: Extreme silence. If you must speak, say: "It's okay. I've cleared the noise for you."
 
-4. Dyslexia (Reading Support)
+4. Dyslexia / CONFUSED
 What to look for:
-Face: Lean-in (squinting at text), mouth moving while reading silently, or signs of frustration (lip-biting).
-Audio: Hesitant speech when reading aloud, or asking for definitions frequently.
-UI Intervention:
-Action: font_transform. Force the use of OpenDyslexic or heavy sans-serif fonts.
-Visuals: Increase line-height to 2.0 and letter-spacing. Use a "line-focus" overlay that follows the mouse.
-Speech Response: Offer to summarize long paragraphs into 3 simple bullet points. Read difficult words aloud if the user pauses on them for more than 2 seconds.
+System message: "[SYSTEM BIOMARKER DETECTED: User is CONFUSED/STRAINING...]"
+UI Intervention (Showcase Mode):
+Action: golden_scaler. Force OpenDyslexic font across the entire page. Increase font size by 20% and use a high-contrast yellow-on-dark-blue theme. Use 'apply_adaptive_css' to enhance readability.
+Speech Response: Offer to read the highlighted section aloud in a clear, deliberate narrator voice. Summarize it into three punchy bullet points.
 
-You have access to tools to perform UI interventions: 'apply_adaptive_css', 'scroll_page', and 'modify_dom'. Use these tools creatively to help the user navigate and transform their browsing experience as described above.`;
+5. Irritated / Frustrated
+What to look for:
+System message: "[SYSTEM BIOMARKER DETECTED: User is IRRITATED/FRUSTRATED...]"
+UI Intervention (Showcase Mode):
+Action: soothing_ui. Use 'apply_adaptive_css' to instantly transform the webpage into a calming environment. Apply soft, cool-toned gradients (mint green, pale blue), round all sharp corners (border-radius: 16px), remove harsh borders, and add a subtle, slow-breathing pulse animation to the background. Make the website feel "perfect" and relaxing.
+Speech Response: Speak in a very gentle, slow, and accommodating tone. "I can see you're getting frustrated. I've softened the screen for you. Let's take it easy."
+
+You have access to tools to perform UI interventions: 'apply_adaptive_css', 'scroll_page', and 'modify_dom'. Use these tools creatively to deliver a WOW experience.`;
 
         await api.connect({
             systemInstruction: systemInstructionText,
@@ -256,7 +262,7 @@ async function handleToolCall(toolCall) {
             addMessage('✨ Applying Neuro-UI transformation...', 'system-msg');
 
             try {
-                const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+                const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
                 if (tab) {
                     await chrome.scripting.executeScript({
                         target: { tabId: tab.id },
@@ -266,6 +272,11 @@ async function handleToolCall(toolCall) {
                                 style = document.createElement('style');
                                 style.id = 'gemini-neuro-ui';
                                 document.head.appendChild(style);
+                                
+                                // Global transition for showcase effect
+                                const globalStyle = document.createElement('style');
+                                globalStyle.textContent = `* { transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important; }`;
+                                document.head.appendChild(globalStyle);
                             }
                             style.textContent = cssCode;
                         },
@@ -279,6 +290,7 @@ async function handleToolCall(toolCall) {
                 }
             } catch (err) {
                 console.error("Failed to apply CSS:", err);
+                addMessage(`❌ Cannot modify this page: ${err.message}. (Note: Chrome blocks extensions on New Tab pages and Web Stores)`, 'system-msg');
                 api.sendToolResponse(fc.id, {
                     name: fc.name,
                     output: { success: false, error: err.message }
@@ -289,7 +301,7 @@ async function handleToolCall(toolCall) {
             const smooth = fc.args.smooth !== false;
 
             try {
-                const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+                const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
                 if (tab) {
                     await chrome.scripting.executeScript({
                         target: { tabId: tab.id },
@@ -328,8 +340,15 @@ async function handleToolCall(toolCall) {
                             try {
                                 let log = [];
                                 for (const op of ops) {
-                                    const elements = document.querySelectorAll(op.selector);
-                                    if (elements.length === 0) {
+                                    let elements = [];
+                                    
+                                    // Handle special selectors
+                                    if (op.selector === 'body') elements = [document.body];
+                                    else if (op.selector === 'head') elements = [document.head];
+                                    else if (op.selector === 'html') elements = [document.documentElement];
+                                    else elements = Array.from(document.querySelectorAll(op.selector));
+
+                                    if (elements.length === 0 || elements[0] === null) {
                                         log.push(`No elements found for selector: ${op.selector}`);
                                         continue;
                                     }
@@ -362,6 +381,16 @@ async function handleToolCall(toolCall) {
                                                 break;
                                             case 'click':
                                                 el.click();
+                                                break;
+                                            case 'append_script':
+                                                const script = document.createElement('script');
+                                                script.textContent = op.value || '';
+                                                el.appendChild(script);
+                                                break;
+                                            case 'append_style':
+                                                const style = document.createElement('style');
+                                                style.textContent = op.value || '';
+                                                el.appendChild(style);
                                                 break;
                                         }
                                     });
