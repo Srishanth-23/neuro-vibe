@@ -27,6 +27,7 @@
                 <video id="video-preview" autoplay playsinline muted></video>
                 <canvas id="video-canvas"></canvas>
                 <div class="camera-badge">📷 Live Tracking</div>
+                <div id="gesture-output" class="gesture-badge" style="display:none; position:absolute; top:10px; right:10px; background:rgba(0,0,0,0.6); color:#4ade80; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:14px; z-index:100;"></div>
             </div>
         </div>
 
@@ -65,6 +66,14 @@
     </div>
 
     <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/knn-classifier"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    
+    <script src="gesture-recognizer.js" type="module"></script>
     <script src="main.js" type="module"></script>
 </body>
 </html>

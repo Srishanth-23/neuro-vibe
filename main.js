@@ -1,10 +1,12 @@
 import { GeminiLiveAPI } from "./gemini-live-api.js";
 import { AudioHandler, VideoHandler, AudioPlayer } from "./media-handlers.js";
+import { GestureRecognizer } from "./gesture-recognizer.js";
 
 let api = null;
 let audioHandler = null;
 let videoHandler = null;
 let audioPlayer = null;
+let gestureRecognizer = null;
 
 const elements = {
     apiKey: document.getElementById('api-key'),
@@ -463,10 +465,34 @@ async function toggleCamera() {
             }
         );
         await videoHandler.start('camera');
+        
+        if (!gestureRecognizer) {
+            gestureRecognizer = new GestureRecognizer(
+                document.getElementById('video-preview'),
+                (gestureText) => {
+                    console.log("Gesture Recognized:", gestureText);
+                    const gestureOutput = document.getElementById('gesture-output');
+                    gestureOutput.textContent = gestureText;
+                    gestureOutput.style.display = 'block';
+                    
+                    setTimeout(() => {
+                         if(gestureOutput.textContent === gestureText) gestureOutput.style.display = 'none';
+                    }, 3000);
+                    
+                    if (api && document.getElementById('connection-status').classList.contains('connected')) {
+                        addMessage(`[👋 Gesture Detected]: ${gestureText}`, 'user-msg');
+                        api.sendText(`[SYSTEM BIOMARKER DETECTED: USER GESTURE - ${gestureText}. Acknowledge concisely.]`);
+                    }
+                }
+            );
+        }
+        gestureRecognizer.start();
+
         isCameraActive = true;
         elements.cameraBtn.classList.add('active');
     } else {
         if (videoHandler) videoHandler.stop();
+        if (gestureRecognizer) gestureRecognizer.stop();
         isCameraActive = false;
         elements.cameraBtn.classList.remove('active');
     }
