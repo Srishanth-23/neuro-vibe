@@ -8,7 +8,7 @@ export class GestureRecognizer {
         
         this.lastGesture = null;
         this.gestureFrames = 0;
-        this.gestureThreshold = 10; // Reduced to 10 frames (0.3s) for easier triggering
+        this.gestureThreshold = 5; // Reduced to 5 frames (super fast trigger)
         this.cooldownFrames = 0;
         
         // Add drawing setup
@@ -96,6 +96,7 @@ export class GestureRecognizer {
             const gesture = this.classifyGesture(landmarks, handedness);
             
             if (gesture) {
+                console.log("Detected raw gesture:", gesture);
                 if (gesture === this.lastGesture) {
                     this.gestureFrames++;
                     if (this.gestureFrames === this.gestureThreshold) {
@@ -143,8 +144,8 @@ export class GestureRecognizer {
         const allFingersOpen = isIndexOpen && isMiddleOpen && isRingOpen && isPinkyOpen;
         const allFingersClosed = (!isIndexOpen) && (!isMiddleOpen) && (!isRingOpen) && (!isPinkyOpen);
 
-        // 1. HELLO: All fingers and thumb open (Open Palm)
-        if (allFingersOpen && isThumbOpen) {
+        // 1. HELLO: All fingers open (ignoring thumb for ease)
+        if (allFingersOpen) {
             return "HELLO";
         }
         
