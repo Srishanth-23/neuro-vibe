@@ -61,9 +61,10 @@ export class AudioHandler {
 }
 
 export class VideoHandler {
-    constructor(onFrame, onBiomarkerDetected) {
+    constructor(onFrame, onBiomarkerDetected, getHandResults) {
         this.onFrame = onFrame;
         this.onBiomarkerDetected = onBiomarkerDetected;
+        this.getHandResults = getHandResults; // Dynamic provider
         this.stream = null;
         this.videoElement = document.getElementById('video-preview');
         this.canvas = document.getElementById('video-canvas');
@@ -79,12 +80,19 @@ export class VideoHandler {
         this.latency = 0;
         this.topBlendshapes = [];
         this.cognitiveStages = [];
+        this.handResults = null; // New storage for hand landmarks
     }
     async initMediaPipe() {
         try {
             const wasmPath = chrome.runtime.getURL("lib/mediapipe/wasm");
             const modelPath = chrome.runtime.getURL("lib/mediapipe/face_landmarker.task");
             
+            // FIX: Prevent Emscripten global Module collision between the legacy hands.js 
+            // and the newer vision_bundle.js WebAssembly environments.
+            if (typeof window !== 'undefined') {
+                window.Module = undefined;
+            }
+
             const vision = await FilesetResolver.forVisionTasks(wasmPath);
             this.faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
                 baseOptions: {
@@ -107,7 +115,7 @@ export class VideoHandler {
         }
 
         if (type === 'camera') {
-            this.stream = await navigator.mediaDevices.getUserMedia({ video: { width: 480, height: 360 } });
+            this.stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
         } else {
             this.stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
         }
@@ -116,7 +124,13 @@ export class VideoHandler {
         if (this.container) this.container.style.display = 'block';
 
         // Wait for video to be ready before starting loops
-        this.videoElement.onloadedmetadata = () => {
+        this.videoElement.onloadedmetadata = async () => {
+            try {
+                await this.videoElement.play();
+            } catch (e) {
+                console.warn("Video playback interrupted", e);
+            }
+
              // Gemini Loop (1 FPS)
             this.timer = setInterval(() => {
                 this.captureFrame();
@@ -131,7 +145,10 @@ export class VideoHandler {
     }
 
     async predictWebcam() {
-        if (!this.isDetecting || !this.videoElement) return;
+        if (!this.isDetecting || !this.videoElement || this.videoElement.videoWidth === 0) {
+            if (this.isDetecting) window.requestAnimationFrame(this.predictWebcam.bind(this));
+            return;
+        }
 
         let startTimeMs = performance.now();
         if (this.lastVideoTime !== this.videoElement.currentTime) {
@@ -252,6 +269,20 @@ export class VideoHandler {
     drawResults(results) {
         const ctx = this.canvas.getContext('2d');
         ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        // 0. Pull and Draw Hand Landmarks (Synchronized)
+        const handResults = this.getHandResults ? this.getHandResults() : null;
+        if (handResults && handResults.multiHandLandmarks) {
+            for (const landmarks of this.handResults.multiHandLandmarks) {
+                // Premium Hand Visualization
+                if (window.drawConnectors && window.drawLandmarks) {
+                    window.drawConnectors(ctx, landmarks, window.HAND_CONNECTIONS,
+                        { color: 'rgba(52, 211, 153, 0.6)', lineWidth: 1 });
+                    window.drawLandmarks(ctx, landmarks, 
+                        { color: '#34d399', lineWidth: 1, radius: 2 });
+                }
+            }
+        }
 
         // 1. Draw Recognition HUD (Lite Mode)
         if (results.faceLandmarks) {

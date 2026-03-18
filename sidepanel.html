@@ -26,8 +26,24 @@
             <div class="camera-wrapper">
                 <video id="video-preview" autoplay playsinline muted></video>
                 <canvas id="video-canvas"></canvas>
+                
+                <!-- Mode HUD -->
+                <div id="mode-hud" class="mode-hud">
+                    <span id="mode-badge" class="mode-badge nav-mode">NAV</span>
+                </div>
+
                 <div class="camera-badge">📷 Live Tracking</div>
                 <div id="gesture-output" class="gesture-badge" style="display:none; position:absolute; top:10px; right:10px; background:rgba(0,0,0,0.6); color:#4ade80; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:14px; z-index:100;"></div>
+                
+                <!-- ASL Spelling HUD (Hidden by default) -->
+                <div id="asl-hud" class="asl-hud" style="display:none;">
+                    <div class="asl-word-board">
+                        <span class="asl-label">SPELLING:</span>
+                        <span id="asl-word-display" class="asl-word"></span>
+                        <span id="asl-cursor">_</span>
+                    </div>
+                    <button id="reset-asl-btn" class="asl-clear-btn" title="Clear Spelling">×</button>
+                </div>
             </div>
         </div>
 
@@ -38,6 +54,13 @@
                 <button id="connect-btn" class="primary-btn">Connect</button>
                 <button id="disconnect-btn" class="secondary-btn" disabled>Disconnect</button>
             </div>
+            
+            <div class="mode-selector" style="display: flex; gap: 4px; margin-top: 4px;">
+                <button id="nav-mode-btn" class="secondary-btn" title="Navigation Mode" style="flex:1; font-size: 0.7rem; padding: 6px;">NAV 🖱️</button>
+                <button id="cmd-mode-btn" class="secondary-btn" title="Command Mode" style="flex:1; font-size: 0.7rem; padding: 6px;">CMD 📜</button>
+                <button id="abc-mode-btn" class="secondary-btn" title="Spelling Mode" style="flex:1; font-size: 0.7rem; padding: 6px;">ABC 🔤</button>
+            </div>
+            <div id="target-tab-info" style="font-size: 0.6rem; color: var(--text-muted); text-align: center; margin-top: 4px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">Target: No active tab found</div>
         </div>
 
         <!-- ── Chat Area ── -->
@@ -51,6 +74,7 @@
                 <button id="mic-btn"    class="icon-btn" title="Toggle Microphone" disabled><span>🎤</span></button>
                 <button id="camera-btn" class="icon-btn" title="Toggle Camera"     disabled><span>📷</span></button>
                 <button id="screen-btn" class="icon-btn" title="Share Screen"      disabled><span>🖥️</span></button>
+                <button id="asl-btn"    class="icon-btn" title="Toggle ASL Spelling" disabled><span>🔤</span></button>
             </div>
             <div class="input-area">
                 <input type="text" id="chat-input" placeholder="Type a message…">
@@ -58,20 +82,22 @@
             </div>
         </div>
 
+        <!-- Chat Output UI -->
+        <div id="chat-output" class="output-container" aria-live="polite">
+            <div id="output-text" class="output-text">
+                Neuro-Vibe Assistant is ready...
+            </div>
+            <!-- Gemini Status Text -->
+             <div id="gemini-status-text" class="status-indicator">Attempting Connect...</div>
+        </div>
+
         <!-- ── Footer ── -->
         <footer>
             <span>Model: <strong id="model-name">gemini-2.5-flash</strong></span>
         </footer>
-
     </div>
-
-    <!-- Scripts -->
-    <script src="lib/mediapipe/hands/camera_utils.js"></script>
-    <script src="lib/mediapipe/hands/control_utils.js"></script>
-    <script src="lib/mediapipe/hands/drawing_utils.js"></script>
-    <script src="lib/mediapipe/hands/hands.js"></script>
     
-    <script src="gesture-recognizer.js" type="module"></script>
+    <!-- Application Entry Point (Modular) -->
     <script src="main.js" type="module"></script>
 </body>
 </html>
